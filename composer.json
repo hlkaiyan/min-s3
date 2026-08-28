@@ -1,0 +1,36 @@
+{
+    "name": "hlkaiyan/min-s3",
+    "description": "轻量 S3 客户端，面向自建 S3 服务器（MinIO / Ceph / 其他 S3 兼容存储），零第三方依赖",
+    "keywords": ["s3", "minio", "ceph", "object-storage", "aws", "s3-client"],
+    "type": "library",
+    "license": "Apache-2.0",
+    "homepage": "https://github.com/hlkaiyan/min-s3",
+    "authors": [
+        {
+            "name": "hlkaiyan",
+            "homepage": "https://github.com/hlkaiyan"
+        }
+    ],
+    "support": {
+        "issues": "https://github.com/hlkaiyan/min-s3/issues",
+        "source": "https://github.com/hlkaiyan/min-s3"
+    },
+    "require": {
+        "php": ">=8.1",
+        "ext-curl": "*",
+        "ext-simplexml": "*",
+        "ext-json": "*",
+        "ext-xmlwriter": "*"
+    },
+    "autoload": {
+        "psr-4": {
+            "MinS3\\": "src/"
+        },
+        "exclude-from-classmap": [
+            "src/data/"
+        ]
+    },
+    "config": {
+        "sort-packages": true
+    }
+}

@@ -1,0 +1,10 @@
+/vendor/
+
+# 库不锁定依赖版本，lock 文件由使用方的项目生成
+composer.lock
+
+# 编辑器与系统文件
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db

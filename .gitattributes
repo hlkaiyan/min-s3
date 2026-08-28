@@ -1,0 +1,8 @@
+# composer require 时不需要下载这些
+/.gitattributes export-ignore
+/.gitignore     export-ignore
+
+# 保证跨平台的行尾一致，避免 Windows 上检出后签名测试文件被改动
+*.php text eol=lf
+*.md  text eol=lf
+*.json text eol=lf

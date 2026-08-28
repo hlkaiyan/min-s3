@@ -1,0 +1,20 @@
+min-s3
+Copyright 2025
+
+本产品包含由 Amazon Web Services, Inc. 开发的软件。
+
+以下部分取自 AWS SDK for PHP (https://github.com/aws/aws-sdk-php)，
+遵循 Apache License 2.0：
+
+  - src/data/api-2.json.php          S3 接口模型定义
+  - src/data/paginators-1.json.php   分页配置
+  - src/data/waiters-2.json.php      等待器配置
+  - src/Api/*                        模型解析与请求序列化
+  - src/Signature/SignatureV4.php    SigV4 签名算法
+  - src/Middleware.php               请求加工规则
+
+上述文件在移植过程中更换了命名空间，并把 Guzzle / PSR-7 依赖
+替换为本包自带的 HTTP 实现；算法与协议逻辑保持不变。
+
+AWS SDK for PHP
+Copyright 2010-2025 Amazon.com, Inc. or its affiliates. All Rights Reserved.
