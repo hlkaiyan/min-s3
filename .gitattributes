@@ -1,7 +1,9 @@
 # composer require 时不下载这些：使用方只需要 src 与文档
 /.gitattributes export-ignore
 /.gitignore     export-ignore
+/.gitleaks.toml export-ignore
 /.github        export-ignore
+/.githooks      export-ignore
 /tests          export-ignore
 
 # 统一行尾，避免在 Windows 上检出后源码被改成 CRLF

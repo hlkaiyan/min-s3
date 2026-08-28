@@ -48,3 +48,31 @@ jobs:
 
       - name: 运行测试
         run: php tests/run.php
+
+  secrets:
+    name: 敏感信息扫描
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+        with:
+          # gitleaks 要扫全部历史，浅克隆会漏掉旧提交
+          fetch-depth: 0
+
+      - name: gitleaks 扫描
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITLEAKS_CONFIG: .gitleaks.toml
+
+      - name: 安装 PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          coverage: none
+
+      # 包自带的兜底检查：规则不如 gitleaks 全，但零依赖，
+      # 任何人 clone 下来都能立刻跑，也是 pre-commit hook 用的同一套
+      - name: 自带审计脚本
+        run: php tests/audit.php

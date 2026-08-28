@@ -31,10 +31,14 @@
         ]
     },
     "scripts": {
-        "test": "php tests/run.php"
+        "test": "php tests/run.php",
+        "scan": "php tests/audit.php",
+        "hooks:install": "git config core.hooksPath .githooks"
     },
     "scripts-descriptions": {
-        "test": "运行全部测试（零依赖检查、端到端、README 示例、真实 HTTP 传输）"
+        "test": "运行全部测试（零依赖检查、端到端、README 示例、真实 HTTP 传输）",
+        "scan": "扫描仓库中的敏感信息（名字不用 audit，那是 Composer 的内置命令）",
+        "hooks:install": "启用 pre-commit 敏感信息扫描（仅本仓库，不改全局 git 配置）"
     },
     "config": {
         "sort-packages": true

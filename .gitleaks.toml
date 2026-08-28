@@ -1,0 +1,29 @@
+# gitleaks 配置
+#
+# 在默认规则集之上，放行本项目中确认无害的公开示例值。
+# 每条都写明理由 —— allowlist 是安全检查里最容易被滥用的地方，
+# 无理由的放行等于关掉检查。
+
+title = "min-s3"
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "本项目中确认公开无害的示例值"
+
+regexes = [
+  # AWS 官方文档中通用的示例密钥，全网可见，不对应任何真实账号
+  '''AKIAIOSFODNN7EXAMPLE''',
+  '''wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY''',
+
+  # MinIO 官方文档的默认账号密码，用于文档示例与测试
+  '''minioadmin''',
+
+  # 测试桩里的假凭据
+  '''testkey''',
+  '''testsecret''',
+
+  # 提交信息里的协作者标识
+  '''noreply@anthropic\.com''',
+]

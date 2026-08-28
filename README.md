@@ -600,6 +600,32 @@ php tests/run.php        # 或 composer test
 
 CI 在 PHP 8.1 / 8.2 / 8.3 / 8.4 上跑，另外覆盖 Windows 与 macOS。
 
+### 敏感信息扫描
+
+参与开发的话建议启用 pre-commit 钩子，提交前自动扫描暂存内容：
+
+```bash
+composer hooks:install     # 等价于 git config core.hooksPath .githooks
+```
+
+这只改本仓库的配置，不动你的全局 git 设置。之后每次 `git commit`
+都会扫一遍将要提交的内容，发现密钥、token、私钥、内嵌凭据的 URL
+就中止提交。确认是误报时把值加进 `tests/audit.php` 的 `$allowlist`
+并注明理由；个别情况要跳过用 `git commit --no-verify`。
+
+手动全量扫描：
+
+```bash
+composer scan            # 或 php tests/audit.php
+```
+
+（命令名不叫 `audit`——那是 Composer 2.4+ 的内置命令，用于检查依赖的
+安全公告，会把自定义脚本盖掉。）
+
+CI 里还会跑一遍 gitleaks，规则库比自带脚本大得多。两者定位不同：
+`tests/audit.php` 零依赖、任何人 clone 下来就能跑，做本地即时拦截；
+gitleaks 在 CI 上做更全面的复查。
+
 ---
 
 ## 许可

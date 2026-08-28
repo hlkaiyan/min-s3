@@ -1,0 +1,47 @@
+#!/bin/sh
+#
+# 提交前扫描暂存内容里的敏感信息。
+#
+# 启用方式（仓库级，不影响全局 git 配置）：
+#   composer hooks:install
+# 或
+#   git config core.hooksPath .githooks
+#
+# 单次跳过：git commit --no-verify
+
+if ! command -v php >/dev/null 2>&1; then
+    echo "pre-commit: 找不到 php，跳过敏感信息扫描" >&2
+    exit 0
+fi
+
+# 定位仓库根：hook 的 $0 在不同 git 版本与平台下形式不一，
+# 靠它推路径不可靠；audit.php 内部还要执行 git 命令，工作目录也必须正确
+repo_root=$(git rev-parse --show-toplevel 2>/dev/null)
+if [ -z "$repo_root" ]; then
+    echo "pre-commit: 无法定位仓库根，跳过扫描" >&2
+    exit 0
+fi
+
+cd "$repo_root" || exit 0
+
+if [ ! -f tests/audit.php ]; then
+    echo "pre-commit: 找不到 tests/audit.php，跳过扫描" >&2
+    exit 0
+fi
+
+php tests/audit.php --staged
+status=$?
+
+if [ $status -ne 0 ]; then
+    echo ""
+    echo "───────────────────────────────────────────────"
+    echo "提交已拦下：暂存内容里有可疑的敏感信息。"
+    echo ""
+    echo "  · 确实是密钥/凭据 → 从暂存区移除，改用环境变量"
+    echo "  · 是公开示例值     → 加进 tests/audit.php 的 \$allowlist 并注明理由"
+    echo "  · 确认要跳过检查   → git commit --no-verify"
+    echo "───────────────────────────────────────────────"
+    exit 1
+fi
+
+exit 0
