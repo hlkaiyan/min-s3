@@ -1,5 +1,10 @@
 # min-s3
 
+[![测试](https://github.com/hlkaiyan/min-s3/actions/workflows/tests.yml/badge.svg)](https://github.com/hlkaiyan/min-s3/actions/workflows/tests.yml)
+[![最新版本](https://img.shields.io/packagist/v/hlkaiyan/min-s3)](https://packagist.org/packages/hlkaiyan/min-s3)
+[![PHP 版本](https://img.shields.io/packagist/dependency-v/hlkaiyan/min-s3/php)](https://packagist.org/packages/hlkaiyan/min-s3)
+[![许可](https://img.shields.io/packagist/l/hlkaiyan/min-s3)](LICENSE)
+
 面向自建 S3 服务器（MinIO / Ceph RGW / SeaweedFS / 其他 S3 兼容存储）的轻量 PHP 客户端。
 
 **零第三方依赖**，只用 PHP 内置扩展。用法与 `aws/aws-sdk-php` 的 `S3Client` 保持一致，从原 SDK 迁移基本不用改调用代码。
