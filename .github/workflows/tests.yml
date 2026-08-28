@@ -1,0 +1,50 @@
+name: 测试
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: PHP ${{ matrix.php }} / ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      # 一个版本失败不影响其他版本继续跑，便于一次看全兼容性
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest]
+        php: ['8.1', '8.2', '8.3', '8.4']
+        include:
+          # 覆盖另外两个平台：tests/run.php 要起停子进程，
+          # Windows 与 macOS 的行为和 Linux 不同，值得各跑一次
+          - os: windows-latest
+            php: '8.3'
+          - os: macos-latest
+            php: '8.3'
+
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+
+      - name: 安装 PHP ${{ matrix.php }}
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          extensions: curl, simplexml, json, xmlwriter
+          coverage: none
+          tools: composer
+
+      - name: 校验 composer.json
+        run: composer validate --strict
+
+      # 本包零第三方依赖，没有 composer install 这一步
+
+      - name: 运行测试
+        run: php tests/run.php

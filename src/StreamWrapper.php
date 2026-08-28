@@ -559,7 +559,9 @@ class StreamWrapper
         return array_merge(array_values($stat), $stat);
     }
 
-    private function statFail(int $flags, S3Exception $e): false
+    // 返回类型写 bool 而非 false：独立的 false 类型要 PHP 8.2 才支持，
+    // 本包下限是 8.1
+    private function statFail(int $flags, S3Exception $e): bool
     {
         if (!($flags & STREAM_URL_STAT_QUIET)) {
             trigger_error($e->getMessage(), E_USER_WARNING);

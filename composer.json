@@ -30,6 +30,12 @@
             "src/data/"
         ]
     },
+    "scripts": {
+        "test": "php tests/run.php"
+    },
+    "scripts-descriptions": {
+        "test": "运行全部测试（零依赖检查、端到端、README 示例、真实 HTTP 传输）"
+    },
     "config": {
         "sort-packages": true
     }

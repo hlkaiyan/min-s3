@@ -565,6 +565,36 @@ $s3->getObject([
 流式上传实测：2 MB 文件上传过程内存增长 0.0 MB。
 预签名 URL 实测：用裸 `curl`（不经过本包）请求返回 200 并取回正确内容。
 
+### 自己跑测试
+
+```bash
+git clone https://github.com/hlkaiyan/min-s3.git
+cd min-s3
+php tests/run.php        # 或 composer test
+```
+
+不需要 `composer install`——测试本身也不依赖 PHPUnit 之类的第三方包。
+这不是偷懒：测试只通过 `autoload.php` 加载本包，**任何一处漏用了第三方类，
+测试都会因为找不到类而直接失败**，零依赖这件事因此是被持续验证的，
+而不是靠人工承诺。
+
+四组测试分别是：
+
+| 文件 | 内容 |
+|---|---|
+| `tests/dependencies.php` | 反射遍历全部类型引用，确认没有指向包外的引用 |
+| `tests/functional.php` | 端到端功能，跑在内存版 S3 服务端上 |
+| `tests/readme.php` | 把本文档里的每段示例执行一遍 |
+| `tests/transport.php` | 真实 curl 传输，自动起停本机测试服务器 |
+
+`tests/run.php` 会依次跑完并汇总，真实传输那组的服务器只监听
+`127.0.0.1`，跑完必定回收，不访问外网。
+
+与 aws-sdk-php 的对拍脚本不在包内——它需要把 aws-sdk-php 装进来做参照，
+不适合作为发布产物的一部分。
+
+CI 在 PHP 8.1 / 8.2 / 8.3 / 8.4 上跑，另外覆盖 Windows 与 macOS。
+
 ---
 
 ## 许可
