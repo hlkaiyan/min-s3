@@ -50,8 +50,20 @@ $sdkAutoload = (static function (): ?string {
 
 if ($sdkAutoload === null) {
     echo "跳过对拍：未找到 aws-sdk-php\n";
-    echo "  安装后重跑：composer require --dev aws/aws-sdk-php\n";
-    exit(0);
+
+    // 上级目录若已有依赖声明，install 会按 lock 装回同样的版本；
+    // 千万别提示在包内 composer require —— 那会把依赖写进 min-s3 的
+    // composer.json，破坏零依赖这个前提
+    $parentManifest = __DIR__ . '/../../composer.json';
+    if (is_file($parentManifest)) {
+        echo '  恢复：cd ' . realpath(__DIR__ . '/../..') . " && composer install\n";
+    } else {
+        echo "  安装（在本包之外的目录，别写进 min-s3/composer.json）：\n";
+        echo "    composer require aws/aws-sdk-php\n";
+    }
+
+    // 3 = 跳过，与「通过(0)」「失败(非0)」区分开，让汇总如实反映
+    exit(3);
 }
 
 echo '参照 SDK：' . realpath($sdkAutoload) . "\n";

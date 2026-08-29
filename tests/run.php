@@ -9,23 +9,30 @@
  * 用法: php tests/run.php
  */
 
+const SKIP_CODE = 3;
+
 $suites = [
     '零依赖检查'   => 'dependencies.php',
     '端到端功能'   => 'functional.php',
     '边界与失效'   => 'edgecases.php',
     'README 示例'  => 'readme.php',
-    // 需要 aws-sdk-php 作参照，没装时自身会跳过并返回 0
+    // 需要 aws-sdk-php 作参照，没装时自身返回 SKIP_CODE
     'SDK 行为对拍' => 'compat.php',
 ];
 
 $failed = [];
+$skipped = [];
 
 foreach ($suites as $label => $file) {
     echo "\n", str_repeat('─', 60), "\n";
     echo "▶ {$label}\n";
     echo str_repeat('─', 60), "\n";
 
-    if (runScript([__DIR__ . '/' . $file]) !== 0) {
+    $code = runScript([__DIR__ . '/' . $file]);
+
+    if ($code === SKIP_CODE) {
+        $skipped[] = $label;
+    } elseif ($code !== 0) {
         $failed[] = $label;
     }
 }
@@ -46,7 +53,10 @@ if ($server === null) {
     $failed[] = '真实 HTTP 传输（启动失败）';
 } else {
     try {
-        if (runScript([__DIR__ . '/transport.php', (string) $port]) !== 0) {
+        $code = runScript([__DIR__ . '/transport.php', (string) $port]);
+        if ($code === SKIP_CODE) {
+            $skipped[] = '真实 HTTP 传输';
+        } elseif ($code !== 0) {
             $failed[] = '真实 HTTP 传输';
         }
     } finally {
@@ -58,8 +68,19 @@ if ($server === null) {
 // ---- 汇总 ----
 echo "\n", str_repeat('═', 60), "\n";
 
+// 跳过的组要如实报出来，否则"全部通过"会掩盖掉根本没跑的部分
+if ($skipped !== []) {
+    echo '跳过 ' . count($skipped) . " 组（缺少可选依赖）:\n";
+    foreach ($skipped as $label) {
+        echo "  - {$label}\n";
+    }
+    echo "\n";
+}
+
 if ($failed === []) {
-    echo "全部测试通过\n";
+    echo $skipped === []
+        ? "全部测试通过\n"
+        : '已跑的测试全部通过（另有 ' . count($skipped) . " 组被跳过）\n";
     exit(0);
 }
 
