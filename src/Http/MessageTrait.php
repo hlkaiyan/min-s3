@@ -70,6 +70,7 @@ trait MessageTrait
 
     public function withHeader(string $header, mixed $value): static
     {
+        self::assertHeaderName($header);
         $value = $this->normalizeHeaderValue($value);
         $lower = strtolower($header);
 
@@ -85,6 +86,7 @@ trait MessageTrait
 
     public function withAddedHeader(string $header, mixed $value): static
     {
+        self::assertHeaderName($header);
         $value = $this->normalizeHeaderValue($value);
         $lower = strtolower($header);
 
@@ -142,6 +144,7 @@ trait MessageTrait
         foreach ($headers as $header => $value) {
             // 数字键会被 PHP 自动转成 int，还原为字符串
             $header = (string) $header;
+            self::assertHeaderName($header);
             $value = $this->normalizeHeaderValue($value);
             $lower = strtolower($header);
 
@@ -161,7 +164,7 @@ trait MessageTrait
     private function normalizeHeaderValue(mixed $value): array
     {
         if (!is_array($value)) {
-            return [trim((string) $value, " \t")];
+            return [self::sanitizeHeaderValue($value)];
         }
 
         if ($value === []) {
@@ -170,9 +173,50 @@ trait MessageTrait
 
         $result = [];
         foreach ($value as $v) {
-            $result[] = trim((string) $v, " \t");
+            $result[] = self::sanitizeHeaderValue($v);
         }
 
         return $result;
+    }
+
+    /**
+     * 头值不允许出现 CR、LF、NUL。
+     *
+     * 这不只是规范洁癖：S3 的对象元数据（x-amz-meta-*）直接来自用户输入，
+     * 若放任换行符进入头部，构造 "value\r\nX-Injected: ..." 就能伪造出
+     * 额外的请求头。宁可在这里报错，也不能让它发出去。
+     */
+    private static function sanitizeHeaderValue(mixed $value): string
+    {
+        if (is_bool($value)) {
+            $value = $value ? '1' : '0';
+        } elseif (!is_scalar($value) && !(is_object($value) && method_exists($value, '__toString'))) {
+            throw new \InvalidArgumentException(
+                '头部值必须是标量或可转字符串的对象，收到 ' . get_debug_type($value)
+            );
+        }
+
+        $value = (string) $value;
+
+        if (preg_match('/[\r\n\x00]/', $value) === 1) {
+            throw new \InvalidArgumentException(
+                '头部值不能包含换行符或空字节（可能是头注入尝试）：'
+                . var_export(mb_strimwidth($value, 0, 60, '…'), true)
+            );
+        }
+
+        return trim($value, " \t");
+    }
+
+    /**
+     * 头名必须是 RFC 7230 定义的 token。
+     */
+    private static function assertHeaderName(string $name): void
+    {
+        if ($name === '' || preg_match("/^[!#$%&'*+.^_`|~0-9A-Za-z-]+$/", $name) !== 1) {
+            throw new \InvalidArgumentException(
+                '非法的头部名称：' . var_export(mb_strimwidth($name, 0, 60, '…'), true)
+            );
+        }
     }
 }

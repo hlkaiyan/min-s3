@@ -8,3 +8,8 @@ composer.lock
 .vscode/
 .DS_Store
 Thumbs.db
+
+# 第三方源码归档，不属于本项目（曾被 git add -A 误纳入 14.7 MB）
+/docs/aws-sdk-php/
+*.zip
+*.tar.gz

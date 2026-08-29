@@ -11,6 +11,7 @@ use MinS3\Exception\S3Exception;
 use MinS3\Http\CurlHandler;
 use MinS3\Http\Request;
 use MinS3\Http\Response;
+use MinS3\Http\Stream;
 use MinS3\Http\Uri;
 use MinS3\Promise\Promise;
 use MinS3\Signature\SignatureV4;
@@ -239,11 +240,15 @@ class S3Client
 
                     return;
                 } catch (\Throwable $e) {
-                    if ($attempt >= $maxAttempts || !$this->isRetryable($e)) {
+                    if ($attempt >= $maxAttempts
+                        || !$this->isRetryable($e)
+                        || !$this->canReplay($request, $command)
+                    ) {
                         throw $e;
                     }
 
                     $attempt++;
+                    $this->resetSink($command);
                     // 指数退避 + 抖动，避免多个客户端同时重试形成尖峰
                     usleep((int) (min(20000, (2 ** $attempt) * 100 + random_int(0, 100)) * 1000));
                 }
@@ -419,6 +424,48 @@ class S3Client
             'response' => $response,
             'request'  => $request,
         ]);
+    }
+
+    /**
+     * 这个请求能否安全地重发一次。
+     *
+     * 消息体不可定位（管道、网络流等）时，第一次发送已经把内容读空了，
+     * 重发只会送出空内容 —— 服务端会存下一个空对象，而调用方看到的是
+     * 成功。宁可把原始错误抛出去，也不能悄悄写坏数据。
+     */
+    private function canReplay(Request $request, Command $command): bool
+    {
+        // 只看 getSize() 不够：管道流的 fstat 会报 0，会被误判成"没有消息体"
+        // 而放行重试。可定位性才是能否重发的充要条件 —— 无消息体的
+        // GET/HEAD/DELETE 用的是 php://temp，本来就可定位。
+        if (!$request->getBody()->isSeekable()) {
+            return false;
+        }
+
+        // sink 是调用方给的流且不可定位时，重发会把内容追加进去
+        $sink = $command->getHttpOptions()['sink'] ?? null;
+        if ($sink instanceof Stream && !$sink->isSeekable()) {
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * 重发前清空 sink。
+     *
+     * 失败的那次可能已经往里写了一部分响应体，不清掉会和重发的内容
+     * 拼在一起。文件路径形式的 sink 每次以 w+ 重新打开，天然不受影响；
+     * 调用方传入的流对象需要手动重置。
+     */
+    private function resetSink(Command $command): void
+    {
+        $sink = $command->getHttpOptions()['sink'] ?? null;
+
+        if ($sink instanceof Stream && $sink->isSeekable() && $sink->isWritable()) {
+            $sink->rewind();
+            $sink->truncate(0);
+        }
     }
 
     private function isRetryable(\Throwable $e): bool

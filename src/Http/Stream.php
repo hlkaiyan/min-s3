@@ -279,6 +279,25 @@ class Stream implements \Stringable
         return $contents;
     }
 
+    /**
+     * 把流截断到指定长度。请求重试前用它清空 sink，
+     * 避免上一次失败写入的残留和重发内容拼在一起。
+     */
+    public function truncate(int $size = 0): void
+    {
+        $this->assertAttached();
+
+        if (!$this->writable) {
+            throw new \RuntimeException('该流不可写，无法截断');
+        }
+
+        if (!ftruncate($this->stream, $size)) {
+            throw new \RuntimeException('截断流失败');
+        }
+
+        $this->size = null;
+    }
+
     public function getMetadata(?string $key = null): mixed
     {
         if (!isset($this->stream)) {

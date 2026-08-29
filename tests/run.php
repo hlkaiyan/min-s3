@@ -12,6 +12,7 @@
 $suites = [
     '零依赖检查'   => 'dependencies.php',
     '端到端功能'   => 'functional.php',
+    '边界与失效'   => 'edgecases.php',
     'README 示例'  => 'readme.php',
 ];
 

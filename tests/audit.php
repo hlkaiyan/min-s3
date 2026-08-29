@@ -133,8 +133,17 @@ if ($stagedOnly) {
 
 $hits = [];
 $bytes = 0;
+$skippedBinary = 0;
 
 foreach ($targets as $relative => $content) {
+    // 二进制文件做文本匹配没有意义：压缩数据里的随机字节很容易撞上
+    // 邮箱、IP 这类宽松规则，产生纯噪音。判定方式与 git 一致 ——
+    // 前 8000 字节里出现 NUL 就当作二进制。
+    if (str_contains(substr($content, 0, 8000), "\x00")) {
+        $skippedBinary++;
+        continue;
+    }
+
     $bytes += strlen($content);
     $exempt = $pathExemptions[$relative] ?? [];
 
@@ -167,9 +176,10 @@ foreach ($targets as $relative => $content) {
 }
 
 printf(
-    "敏感信息扫描：%d 个文件，%s%s\n\n",
-    count($targets),
+    "敏感信息扫描：%d 个文本文件，%s%s%s\n\n",
+    count($targets) - $skippedBinary,
     $bytes > 1048576 ? round($bytes / 1048576, 1) . ' MB' : round($bytes / 1024) . ' KB',
+    $skippedBinary > 0 ? "（跳过 {$skippedBinary} 个二进制文件）" : '',
     $stagedOnly ? '（仅暂存区）' : ''
 );
 

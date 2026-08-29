@@ -44,6 +44,10 @@ class Paginator implements \IteratorAggregate
 
         $remaining = $limit;
 
+        // 记录上一轮的令牌：部分 S3 实现在没有更多数据时会把同一个
+        // continuation token 原样回显，只看 IsTruncated 会无限翻页
+        $lastToken = null;
+
         while (true) {
             if ($pageSize !== null && $this->config['limit_key'] !== null) {
                 $args[$this->config['limit_key']] = $remaining !== null
@@ -68,6 +72,16 @@ class Paginator implements \IteratorAggregate
             if ($nextToken === null) {
                 return;
             }
+
+            // 令牌与上一轮相同说明服务端没有推进，再请求下去只会拿到同一页
+            $tokenKey = is_array($nextToken)
+                ? implode("\0", array_map(static fn($v): string => (string) $v, $nextToken))
+                : (string) $nextToken;
+
+            if ($tokenKey === $lastToken) {
+                return;
+            }
+            $lastToken = $tokenKey;
 
             $args = $this->applyToken($args, $nextToken);
         }
