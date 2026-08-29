@@ -609,6 +609,10 @@ composer require --dev aws/aws-sdk-php
 刻意没写进 `composer.json` 的 `require-dev`——本包主打零依赖，不该让
 每个开发者为一个对拍脚本装 50 MB 的 SDK。装了就会被自动发现。
 
+也可以不装，直接用 v1.0.0 Release 附件里的固定快照（`composer.zip`，
+解压到 `vendor/` 即可），基准不会随上游更新漂移，步骤见
+[docs/release.md](docs/release.md#准备对拍环境)。
+
 它验证的是包内其他测试**做不到**的事：其余测试只能确认 min-s3 自洽
 （请求发得出去、响应解析得回来），确认不了「与官方 SDK 行为一致」。
 改动签名、序列化、解析、寻址或 URL 编码之后，应该跑一次。
@@ -644,6 +648,16 @@ gitleaks 在 CI 上做更全面的复查。
 这套配置（三层防护、CI 矩阵、以及实际踩过的坑）整理在
 **[docs/ci-setup.md](docs/ci-setup.md)**，与语言无关的部分可以直接
 搬到别的项目。
+
+### 发布新版本
+
+composer 只认 tag：往 `main` 推多少提交都不影响 `composer require` 装到的
+内容，不打 tag 等于没发布。另外 `.gitattributes` 的 `export-ignore` 会把
+`tests/`、`docs/` 等挡在分发包外，所以 `vendor/hlkaiyan/min-s3/` 本来就比
+仓库少一批目录，不是装错了。
+
+版本号判定、打标签、Packagist 同步、Release 附件管理、发布前检查清单，
+整理在 **[docs/release.md](docs/release.md)**。
 
 ---
 
