@@ -14,6 +14,8 @@ $suites = [
     '端到端功能'   => 'functional.php',
     '边界与失效'   => 'edgecases.php',
     'README 示例'  => 'readme.php',
+    // 需要 aws-sdk-php 作参照，没装时自身会跳过并返回 0
+    'SDK 行为对拍' => 'compat.php',
 ];
 
 $failed = [];

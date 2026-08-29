@@ -583,20 +583,35 @@ php tests/run.php        # 或 composer test
 测试都会因为找不到类而直接失败**，零依赖这件事因此是被持续验证的，
 而不是靠人工承诺。
 
-四组测试分别是：
+各组测试的分工：
 
-| 文件 | 内容 |
-|---|---|
-| `tests/dependencies.php` | 反射遍历全部类型引用，确认没有指向包外的引用 |
-| `tests/functional.php` | 端到端功能，跑在内存版 S3 服务端上 |
-| `tests/readme.php` | 把本文档里的每段示例执行一遍 |
-| `tests/transport.php` | 真实 curl 传输，自动起停本机测试服务器 |
+| 文件 | 内容 | 项数 |
+|---|---|---|
+| `tests/dependencies.php` | 反射遍历全部类型引用，确认没有指向包外的 | 1342 处 |
+| `tests/functional.php` | 端到端功能，跑在内存版 S3 服务端上 | 73 |
+| `tests/edgecases.php` | 边界与失效场景，每条对应一个曾真实存在的 bug | 20 |
+| `tests/readme.php` | 把本文档里的每段示例执行一遍 | 36 |
+| `tests/compat.php` | 与 aws-sdk-php 逐字节对拍 | 129 |
+| `tests/transport.php` | 真实 curl 传输，自动起停本机测试服务器 | 18 |
 
-`tests/run.php` 会依次跑完并汇总，真实传输那组的服务器只监听
+`tests/run.php` 会依次跑完并汇总。真实传输那组的服务器只监听
 `127.0.0.1`，跑完必定回收，不访问外网。
 
-与 aws-sdk-php 的对拍脚本不在包内——它需要把 aws-sdk-php 装进来做参照，
-不适合作为发布产物的一部分。
+### 对拍需要额外准备
+
+`tests/compat.php` 要拿 aws-sdk-php 作参照，**没装时自动跳过**（不算失败）。
+想跑它：
+
+```bash
+composer require --dev aws/aws-sdk-php
+```
+
+刻意没写进 `composer.json` 的 `require-dev`——本包主打零依赖，不该让
+每个开发者为一个对拍脚本装 50 MB 的 SDK。装了就会被自动发现。
+
+它验证的是包内其他测试**做不到**的事：其余测试只能确认 min-s3 自洽
+（请求发得出去、响应解析得回来），确认不了「与官方 SDK 行为一致」。
+改动签名、序列化、解析、寻址或 URL 编码之后，应该跑一次。
 
 CI 在 PHP 8.1 / 8.2 / 8.3 / 8.4 上跑，另外覆盖 Windows 与 macOS。
 
