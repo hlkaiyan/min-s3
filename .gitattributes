@@ -5,6 +5,7 @@
 /.github        export-ignore
 /.githooks      export-ignore
 /tests          export-ignore
+/docs           export-ignore
 
 # 统一行尾，避免在 Windows 上检出后源码被改成 CRLF
 *.php  text eol=lf

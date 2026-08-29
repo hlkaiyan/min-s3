@@ -54,6 +54,12 @@ $allowlist = [
     's3.internal',                               // README 里 verify 选项的示例域名
     's3.amazonaws.com',                          // XML 命名空间标识符，非请求地址
     'www.w3.org',                                // XML 规范命名空间
+
+    // docs/ci-setup.md 里演示"如何造假密钥测试拦截"的示例值。
+    // 只放行这两个具体串，不豁免整个 docs/ 目录 —— 文档里同样可能
+    // 误贴真密钥，整目录豁免等于给自己开后门。
+    'AKIAIOSFODNN7REALKEY',
+    'SuperSecret123456',
 ];
 
 /**

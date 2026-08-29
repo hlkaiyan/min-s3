@@ -26,4 +26,9 @@ regexes = [
 
   # 提交信息里的协作者标识
   '''noreply@anthropic\.com''',
+
+  # docs/ci-setup.md 里演示"如何造假密钥测试拦截"的示例值。
+  # 只放行这两个具体串，不豁免整个 docs/ 目录
+  '''AKIAIOSFODNN7REALKEY''',
+  '''SuperSecret123456''',
 ]

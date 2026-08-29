@@ -626,6 +626,10 @@ CI 里还会跑一遍 gitleaks，规则库比自带脚本大得多。两者定�
 `tests/audit.php` 零依赖、任何人 clone 下来就能跑，做本地即时拦截；
 gitleaks 在 CI 上做更全面的复查。
 
+这套配置（三层防护、CI 矩阵、以及实际踩过的坑）整理在
+**[docs/ci-setup.md](docs/ci-setup.md)**，与语言无关的部分可以直接
+搬到别的项目。
+
 ---
 
 ## 许可
